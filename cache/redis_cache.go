@@ -12,13 +12,7 @@ type RedisCache struct {
 	cache *cache.Cache
 }
 
-func NewRedisCache(host string, port string, user string, password string) *RedisCache {
-	client := redis.NewClient(&redis.Options{
-		Addr:     host + ":" + port,
-		Username: user,
-		Password: password,
-	})
-
+func NewRedisCache(client *redis.Client) *RedisCache {
 	cache := cache.New(&cache.Options{
 		Redis:      client,
 		LocalCache: cache.NewTinyLFU(1000, time.Minute),
@@ -61,17 +55,8 @@ type TypedRedisCache[T any] struct {
 }
 
 func NewTypedRedisCache[T any](
-	host string,
-	port string,
-	user string,
-	password string,
+	client *redis.Client,
 ) *TypedRedisCache[T] {
-	client := redis.NewClient(&redis.Options{
-		Addr:     host + ":" + port,
-		Username: user,
-		Password: password,
-	})
-
 	cache := cache.New(&cache.Options{
 		Redis:      client,
 		LocalCache: cache.NewTinyLFU(1000, time.Minute),
@@ -93,7 +78,7 @@ func (c *TypedRedisCache[T]) Get(key string, wanted *T, ctx context.Context) err
 
 func (c *TypedRedisCache[T]) Put(
 	key string,
-	value T,
+	value *T,
 	expiresAfter time.Duration,
 	ctx context.Context,
 ) error {
