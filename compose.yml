@@ -1,0 +1,6 @@
+services:
+  redis:
+    container_name: lucerna_redis
+    ports:
+      - 6379:6379
+    image: "redis:alpine"
