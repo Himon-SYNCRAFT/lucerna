@@ -92,7 +92,6 @@ func TestMain(m *testing.M) {
 
 func TestRedisCache(t *testing.T) {
 	var cache Cache
-	// var typedCache TypedCache[testObject]
 	var err error
 	obj := newTestObject("key", "test")
 
@@ -104,8 +103,14 @@ func TestRedisCache(t *testing.T) {
 
 	ctx := context.Background()
 
-	cache = NewRedisCache(redisClient)
-	// typedCache = NewTypedRedisCache[testObject](redisClient)
+	cache, err = NewRedisCache(
+		redisClient,
+		"cache",
+		&CacheOptions{prefix: "test"},
+	)
+	if err != nil {
+		t.Error("Error creating cache: ", err)
+	}
 
 	err = cache.Put(obj.Key, obj, time.Minute, ctx)
 	if err != nil {
@@ -123,8 +128,8 @@ func TestRedisCache(t *testing.T) {
 		t.Error("Expected name to be ", obj.Name, " but got ", wanted.Name)
 	}
 
-	if wanted.Name != obj.Name {
-		t.Error("Expected name to be ", obj.Name, " but got ", wanted.Name)
+	if wanted.Key != obj.Key {
+		t.Error("Expected name to be ", obj.Key, " but got ", wanted.Key)
 	}
 
 	err = cache.Delete(obj.Key, ctx)
@@ -140,11 +145,62 @@ func TestRedisCache(t *testing.T) {
 	}
 
 	if wanted2.Name != "" {
-		t.Error("Expected name to be empty but got ", wanted.Name)
+		t.Error("Expected name to be empty but got ", wanted2.Name)
+	}
+
+	if wanted2.Key != "" {
+		t.Error("Expected key to be empty but got ", wanted2.Key)
+	}
+}
+
+func TestRedisCacheClear(t *testing.T) {
+	var cache Cache
+	var err error
+	obj := newTestObject("key", "test")
+
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%s", redisConf.Host, redisHostPort),
+		Username: redisConf.User,
+		Password: redisConf.Password,
+	})
+
+	ctx := context.Background()
+
+	cache, err = NewRedisCache(
+		redisClient,
+		"cache",
+		&CacheOptions{prefix: "test"},
+	)
+	if err != nil {
+		t.Error("Error creating cache: ", err)
+	}
+
+	err = cache.Put(obj.Key, obj, time.Minute, ctx)
+	if err != nil {
+		t.Error("Error putting object to cache: ", err)
+	}
+
+	var wanted testObject
+
+	err = cache.Get(obj.Key, &wanted, ctx)
+	if err != nil {
+		t.Error("Error getting object from cache: ", err)
+	}
+
+	err = cache.Clear(ctx)
+	if err != nil {
+		t.Error("Error clearing cache: ", err)
+	}
+
+	var wanted2 testObject
+
+	err = cache.Get(obj.Key, &wanted2, ctx)
+	if err == nil {
+		t.Error("Error getting deleted object from cache")
 	}
 
 	if wanted2.Name != "" {
-		t.Error("Expected name to be empty but got ", wanted.Name)
+		t.Error("Expected name to be empty but got ", wanted2.Name)
 	}
 }
 
@@ -161,7 +217,14 @@ func TestTypedRedisCache(t *testing.T) {
 
 	ctx := context.Background()
 
-	typedCache = NewTypedRedisCache[testObject](redisClient)
+	typedCache, err = NewTypedRedisCache[testObject](
+		redisClient,
+		"cache",
+		&CacheOptions{prefix: "test"},
+	)
+	if err != nil {
+		t.Errorf("Error creating cache: %s", err)
+	}
 
 	err = typedCache.Put(obj.Key, obj, time.Minute, ctx)
 	if err != nil {
@@ -196,10 +259,61 @@ func TestTypedRedisCache(t *testing.T) {
 	}
 
 	if wanted2.Name != "" {
-		t.Error("Expected name to be empty but got ", wanted.Name)
+		t.Error("Expected name to be empty but got ", wanted2.Name)
+	}
+
+	if wanted2.Key != "" {
+		t.Error("Expected name to be empty but got ", wanted2.Key)
+	}
+}
+
+func TestTypedRedisCacheClear(t *testing.T) {
+	var cache TypedCache[testObject]
+	var err error
+	obj := newTestObject("key", "test")
+
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%s", redisConf.Host, redisHostPort),
+		Username: redisConf.User,
+		Password: redisConf.Password,
+	})
+
+	ctx := context.Background()
+
+	cache, err = NewTypedRedisCache[testObject](
+		redisClient,
+		"cache",
+		&CacheOptions{prefix: "test"},
+	)
+	if err != nil {
+		t.Error("Error creating cache: ", err)
+	}
+
+	err = cache.Put(obj.Key, obj, time.Minute, ctx)
+	if err != nil {
+		t.Error("Error putting object to cache: ", err)
+	}
+
+	var wanted testObject
+
+	err = cache.Get(obj.Key, &wanted, ctx)
+	if err != nil {
+		t.Error("Error getting object from cache: ", err)
+	}
+
+	err = cache.Clear(ctx)
+	if err != nil {
+		t.Error("Error clearing cache: ", err)
+	}
+
+	var wanted2 testObject
+
+	err = cache.Get(obj.Key, &wanted2, ctx)
+	if err == nil {
+		t.Error("Error getting deleted object from cache")
 	}
 
 	if wanted2.Name != "" {
-		t.Error("Expected name to be empty but got ", wanted.Name)
+		t.Error("Expected name to be empty but got ", wanted2.Name)
 	}
 }
