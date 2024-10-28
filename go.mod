@@ -5,6 +5,7 @@ go 1.22.7
 require (
 	github.com/go-redis/cache/v9 v9.0.0
 	github.com/joho/godotenv v1.5.1
+	github.com/maypok86/otter v1.2.3
 	github.com/ory/dockertest/v3 v3.11.0
 	github.com/redis/go-redis/v9 v9.7.0
 )
@@ -22,6 +23,8 @@ require (
 	github.com/docker/docker v27.3.1+incompatible // indirect
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
+	github.com/dolthub/maphash v0.1.0 // indirect
+	github.com/gammazero/deque v0.2.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect

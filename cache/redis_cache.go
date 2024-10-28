@@ -33,7 +33,7 @@ func NewRedisCache(
 	client *redis.Client,
 	poolName string,
 	options *CacheOptions,
-) (*RedisCache, error) {
+) (Cache, error) {
 	if client == nil {
 		return nil, errors.New("redis client is nil")
 	}
@@ -149,7 +149,7 @@ func NewTypedRedisCache[T any](
 	client *redis.Client,
 	poolName string,
 	options *CacheOptions,
-) (*TypedRedisCache[T], error) {
+) (TypedCache[T], error) {
 	if client == nil {
 		return nil, errors.New("redis client is nil")
 	}
